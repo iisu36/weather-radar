@@ -1,4 +1,4 @@
-import './App.css'
+import './styles.css'
 import Header from './components/Header'
 import WeatherView from './components/WeatherView'
 
