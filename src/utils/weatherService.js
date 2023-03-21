@@ -15,7 +15,7 @@ const get3hPrecipitation = (object) => {
   } else if (object.snow) {
     return object.snow['3h'].toFixed()
   } else {
-    return 0
+    return '0' // toFixed() returns string so all possibilities are strings
   }
 }
 
@@ -29,7 +29,7 @@ const getPromises = (viewLocations) => {
     const key = Object.keys(CITIES).find(
       (id) => CITIES[id].name === viewLocations
     )
-    locations = { key: CITIES[key] }
+    locations = { city: CITIES[key] }
   }
   for (const location of Object.values(locations)) {
     const weatherRequest = axios.get(
@@ -45,11 +45,12 @@ const getPromises = (viewLocations) => {
   return { weatherPromises, forecastPromises }
 }
 
-const getCurrentWeatherData = async (weatherPromises) => {
+const getCurrentWeatherData = async (weatherPromises, setErrorMessage) => {
   const weatherResponse = await Promise.all(weatherPromises)
   const currentWeather = {}
   weatherResponse.forEach((index) => {
     const object = index.data
+    // City name with äö, because in the API e.g. Jyväskylä = Jyvaskyla
     const name = CITIES[object.id].name
     const temp = (object.main.temp - 273.15).toFixed(1).replace('-0.0', '0.0')
     const date = new Date(object.dt * 1000)
@@ -69,18 +70,23 @@ const getCurrentWeatherData = async (weatherPromises) => {
 
 const addForecastWeatherData = async (
   forecastPromises,
-  currentWeatherObject
+  currentWeatherObject,
+  setErrorMessage
 ) => {
+  const joinedWeatherObject = {}
+
   const forecastResponse = await Promise.all(forecastPromises)
   forecastResponse.forEach((index) => {
     const object = index.data
+    // City name with äö, because in the API e.g. Jyväskylä = Jyvaskyla
     const name = CITIES[object.city.id].name
-    // Making sure the forecast is later than current time
+    // Making sure the forecast is later than current weather
     const startIndex = object.list.findIndex(
       (index) => currentWeatherObject[name].dt < index.dt
     )
-    const forecastArray = []
     const forecasts = object.list.slice(startIndex, startIndex + 5)
+
+    const forecastObjectArray = []
 
     for (let forecast of forecasts) {
       const date = new Date(forecast.dt * 1000)
@@ -96,23 +102,54 @@ const addForecastWeatherData = async (
         icon: forecast.weather[0].icon,
         wind: forecast.wind.speed,
       }
-      forecastArray.push(forecastObject)
+      forecastObjectArray.push(forecastObject)
     }
-    currentWeatherObject[name] = {
+
+    joinedWeatherObject[name] = {
       ...currentWeatherObject[name],
-      precipitation: forecastArray[0].precipitation,
-      forecasts: forecastArray,
+      precipitation: forecastObjectArray[0].precipitation,
+      forecasts: forecastObjectArray,
     }
   })
-  return currentWeatherObject
+  return joinedWeatherObject
 }
 
-export const fetchData = async (viewLocations, setWeatherData) => {
+export const fetchData = async (
+  viewLocations,
+  setWeatherData,
+  setErrorMessage
+) => {
   const { weatherPromises, forecastPromises } = getPromises(viewLocations)
-  const currentWeatherObject = await getCurrentWeatherData(weatherPromises)
-  const joinedWeatherObject = await addForecastWeatherData(
-    forecastPromises,
-    currentWeatherObject
-  )
-  setWeatherData(joinedWeatherObject)
+  let currentWeatherObject = {}
+  try {
+    currentWeatherObject = await getCurrentWeatherData(
+      weatherPromises,
+      setErrorMessage
+    )
+  } catch (error) {
+    setErrorMessage(
+      'Something went wrong fetching current weather data: ' + error.message
+    )
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 5000)
+    setWeatherData(null)
+    return
+  }
+  try {
+    const joinedWeatherObject = await addForecastWeatherData(
+      forecastPromises,
+      currentWeatherObject,
+      setErrorMessage
+    )
+    setWeatherData(joinedWeatherObject)
+  } catch (error) {
+    setErrorMessage(
+      'Something went wrong fetching forecast data: ' + error.message
+    )
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 5000)
+    setWeatherData(null)
+  }
 }

@@ -21,7 +21,7 @@ const CurrentWeather = ({ territory }) => {
             src={`https://openweathermap.org/img/wn/${territory.icon}@2x.png`}
             width="60"
             height="60"
-            alt="pic"
+            alt="icon describing weather conditions"
           />
           <h3 className="black size26">{territory.temp}°C</h3>
         </div>

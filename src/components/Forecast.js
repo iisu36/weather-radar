@@ -15,7 +15,7 @@ const Forecast = ({ territory }) => {
                 src={`https://openweathermap.org/img/wn/${forecast.icon}@2x.png`}
                 width="45"
                 height="45"
-                alt="pic"
+                alt="icon describing weather conditions"
               />
               <h6 className="black size15">{forecast.temp}°C</h6>
             </div>
