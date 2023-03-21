@@ -1,5 +1,7 @@
 # Weather Radar
 
+Created with React.js
+
 ## How to get started
 
 Open terminal.
