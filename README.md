@@ -8,14 +8,14 @@ Change the current working directory to the location where you want the cloned r
 
 Clone the project using
 
-```bash
-$ git clone https://github.com/iisu36/weather-radar.git
+```
+git clone https://github.com/iisu36/weather-radar.git
 ```
 
 Change the current working directory to the newly cloned repository and install all dependencies with
 
-```bash
-$ npm install
+```
+npm install
 ```
 
 Create a file named `.env.local` at the root of the repository and in the file, write
@@ -28,14 +28,14 @@ with `your-api-key-to-openweathermap` replaced with a api key to [openWeatherMap
 
 You are now ready to start the application with
 
-```bash
-§ npm start
+```
+npm start
 ```
 
 ## Testing
 
 Tests are run with
 
-```bash
-$ CI=true npm test
+```
+CI=true npm test
 ```
